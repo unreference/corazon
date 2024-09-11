@@ -1,6 +1,10 @@
 #pragma once
 
-class GLFWwindow;
+#include "Types.hpp"
+
+struct GLFWwindow;
+
+constexpr double TimeStep = 1.0f / 60.0f;
 
 class Application
 {
@@ -11,8 +15,8 @@ public:
   void Run();
 
 private:
-  static void FrameBufferSizeCallback( GLFWwindow * window, int width,
-                                       int height );
+  static void FrameBufferSizeCallback( GLFWwindow * window, s32 width,
+                                       s32 height );
 
   bool Initialize();
   void GetInput();

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -21,17 +22,34 @@ Application::~Application()
 
 void Application::Run()
 {
+  using clock       = std::chrono::high_resolution_clock;
+  auto previousTime = clock::now();
+  f32  lag          = 0.0f;
+
   while ( !glfwWindowShouldClose( m_Window ) )
   {
-    Update();
+    auto                       currentTime = clock::now();
+    std::chrono::duration<f32> elapsed     = currentTime - previousTime;
+    previousTime                           = currentTime;
+
+    lag += elapsed.count();
+
+    glfwPollEvents();
+
+    while ( lag >= TimeStep )
+    {
+      Update();
+      lag -= TimeStep;
+    }
+
     Render();
   }
 
   Terminate();
 }
 
-void Application::FrameBufferSizeCallback( GLFWwindow * window, int width,
-                                           int height )
+void Application::FrameBufferSizeCallback( GLFWwindow * window, s32 width,
+                                           s32 height )
 {
   glViewport( 0, 0, width, height );
 }
@@ -44,8 +62,8 @@ bool Application::Initialize()
     return false;
   }
 
-  glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-  glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
+  glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
+  glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 6 );
   glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
   m_Window = glfwCreateWindow( 1280, 720, "Corazon", nullptr, nullptr );
@@ -57,6 +75,7 @@ bool Application::Initialize()
   }
 
   glfwMakeContextCurrent( m_Window );
+  glfwSwapInterval( 1 );
   glfwSetWindowSizeCallback( m_Window, FrameBufferSizeCallback );
 
   if ( !gladLoadGLLoader(
@@ -89,7 +108,6 @@ void Application::Render()
   glClear( GL_COLOR_BUFFER_BIT );
 
   glfwSwapBuffers( m_Window );
-  glfwPollEvents();
 }
 
 void Application::Terminate()
